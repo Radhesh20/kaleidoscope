@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kaleidoscope-framework-model</title>
+    <style>
+        /* Basic CSS to remove default margin/padding and hide scrollbars */
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+            background-color: #111;
+        }
+        /* Style for the main canvas */
+        canvas {
+            display: block;
+        }
+        /* Simple instruction overlay */
+        .instructions {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            text-align: center;
+            font-size: 1.2rem;
+            pointer-events: none; /* Allows mouse events to pass through to the canvas */
+            text-shadow: 0 0 10px rgba(0,0,0,0.8);
+        }
+    </style>
+    <!-- Import the p5.js library from a CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.js"></script>
+</head>
+<body>
+    <div id="instructions" class="instructions">
+        <p>Move your mouse to draw.</p>
+        <p>Click to clear.</p>
+    </div>
+    <script>
+        // --- p5.js Sketch ---
+
+        // The number of symmetrical slices in the kaleidoscope. Try changing this value!
+        const symmetry = 6;
+
+        // The angle for each slice
+        let angle;
+
+        // A variable to control the hue of the stroke color, creating a rainbow effect
+        let hueValue = 0;
+        
+        // Flag to check if the user has started drawing
+        let hasDrawn = false;
+
+        // The setup function runs once when the program starts
+        function setup() {
+            // Create a canvas that fills the entire browser window
+            createCanvas(windowWidth, windowHeight);
+
+            // Calculate the angle for each slice based on the symmetry value
+            angle = 360 / symmetry;
+
+            // Set the background color
+            background(10, 10, 10);
+
+            // Set the color mode to HSB (Hue, Saturation, Brightness)
+            // This makes it easier to create rainbow color effects
+            // Max values: Hue 360, Saturation 100, Brightness 100
+            colorMode(HSB, 360, 100, 100);
+            
+            // Set the stroke weight (thickness of the lines)
+            strokeWeight(4);
+        }
+
+        // The draw function runs continuously in a loop
+        function draw() {
+            // Check if the mouse is being moved. We only draw if there is movement.
+            if (mouseX > 0 || mouseY > 0 || pmouseX > 0 || pmouseY > 0) {
+                 if (!hasDrawn) {
+                    // Hide instructions on the first draw
+                    document.getElementById('instructions').style.display = 'none';
+                    hasDrawn = true;
+                }
+            }
+
+            // Translate the origin (0,0) to the center of the canvas.
+            // All subsequent drawing operations will be relative to the center.
+            translate(width / 2, height / 2);
+
+            // Only draw if the mouse is inside the canvas window
+            if (mouseX > 0 && mouseX < width && mouseY > 0 && mouseY < height) {
+                // Calculate the mouse and previous mouse positions relative to the new center origin
+                const mx = mouseX - width / 2;
+                const my = mouseY - height / 2;
+                const pmx = pmouseX - width / 2;
+                const pmy = pmouseY - height / 2;
+
+                // Set the stroke color. The hue cycles from 0 to 360.
+                stroke(hueValue, 80, 100);
+
+                // Loop through each slice of the kaleidoscope
+                for (let i = 0; i < symmetry; i++) {
+                    // Rotate the canvas by the slice angle
+                    rotate(angle);
+
+                    // Draw a line from the previous mouse position to the current mouse position
+                    line(mx, my, pmx, pmy);
+
+                    // Create a mirrored reflection within the slice for a more complex pattern
+                    // We do this by flipping the coordinate system vertically and drawing again
+                    push(); // Save the current transformation state
+                    scale(1, -1); // Flip the y-axis
+                    line(mx, my, pmx, pmy); // Draw the mirrored line
+                    pop(); // Restore the original transformation state
+                }
+
+                // Increment the hue value to cycle through colors.
+                // The modulo operator (%) wraps the value back to 0 when it reaches 360.
+                hueValue = (hueValue + 0.5) % 360;
+            }
+        }
+
+        // This function is called whenever the mouse is clicked
+        function mousePressed() {
+            // Clear the canvas by drawing the background again
+            background(10, 10, 10);
+        }
+
+        // This function is called whenever the browser window is resized
+        function windowResized() {
+            // Resize the canvas to the new window dimensions
+            resizeCanvas(windowWidth, windowHeight);
+            // Redraw the background to clear any artifacts
+            background(10, 10, 10);
+        }
+
+    </script>
+</body>
+</html>
